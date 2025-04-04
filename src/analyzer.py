@@ -22,7 +22,10 @@ class Analyzer:
     def __init__(self, config: Config):
         self.config = config
 
-    def _get_attribute_enum_class(self, attribute: DemographicAttribute):
+    def _get_attribute_enum_class(
+        self,
+        attribute: DemographicAttribute,
+    ) -> Union[Gender, Race, Age]:
         if attribute == DemographicAttribute.GENDER:
             return Gender
         if attribute == DemographicAttribute.RACE:
@@ -30,7 +33,10 @@ class Analyzer:
         if attribute == DemographicAttribute.AGE:
             return Age
 
-    def _compute_feature_distributions(self, image_details: List[Explanation]) -> List[FeatureDistribution]:
+    def _compute_feature_distributions(
+        self,
+        image_details: List[Explanation],
+    ) -> List[FeatureDistribution]:
         feature_counts: Dict[Feature, Dict[Union[Gender, Race, Age], int]] = defaultdict(lambda: defaultdict(int))
         gender_totals: Dict[Gender, int] = defaultdict(int)
         race_totals: Dict[Race, int] = defaultdict(int)
@@ -111,7 +117,10 @@ class Analyzer:
             mean_feature_distribution_bias=mean_feature_distribution_bias,
         )
 
-    def get_bias_analysis(self, image_details: List[Explanation]) -> Dict:
+    def get_bias_analysis(
+        self,
+        image_details: List[Explanation],
+    ) -> Dict:
         true_labels = np.array([detail.label.value for detail in image_details])
         predicted_labels = np.array([detail.prediction.value for detail in image_details])
 

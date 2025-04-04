@@ -53,7 +53,10 @@ class Explainer:
         except Exception as e:
             raise RuntimeError(f"Failed to load feature indices map: {e}") from e
 
-    def _get_pixel_landmarks(self, image_np: np.ndarray) -> List[Tuple[int, int]]:
+    def _get_pixel_landmarks(
+        self,
+        image_np: np.ndarray,
+    ) -> List[Tuple[int, int]]:
         if image_np.dtype in [np.float32, np.float64]:
             image_uint8 = (image_np * 255).clip(0, 255).astype(np.uint8)
         else:
@@ -114,7 +117,10 @@ class Explainer:
             is_key_feature=False,
         )
 
-    def apply_mask(self, image_np: np.ndarray) -> np.ndarray:
+    def apply_mask(
+        self,
+        image_np: np.ndarray,
+    ) -> np.ndarray:
         if not self.config.analysis.mask_features:
             return image_np
 
@@ -134,7 +140,10 @@ class Explainer:
 
         return masked_image
 
-    def get_features(self, image_np: np.ndarray) -> List[FeatureDetails]:
+    def get_features(
+        self,
+        image_np: np.ndarray,
+    ) -> List[FeatureDetails]:
         pixel_coords = self._get_pixel_landmarks(image_np)
         if not pixel_coords:
             return []

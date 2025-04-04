@@ -61,7 +61,9 @@ class Model:
         return model
 
     def get_model_and_history(
-        self, train_df: pd.DataFrame, val_df: pd.DataFrame
+        self,
+        train_df: pd.DataFrame,
+        val_df: pd.DataFrame,
     ) -> Tuple[tf.keras.Model, ModelHistory]:
 
         x_train = np.stack(train_df["processed_image"].values)

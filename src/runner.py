@@ -100,10 +100,11 @@ class Runner:
 
         return details
 
-    def _get_all_explanations(self, test_df: pd.DataFrame, model: tf.keras.Model) -> List[Explanation]:
-        if test_df.empty:
-            return []
-
+    def _get_all_explanations(
+        self,
+        test_df: pd.DataFrame,
+        model: tf.keras.Model,
+    ) -> List[Explanation]:
         heatmap_generator = self.explainer.get_heatmap_generator(model)
         all_explanations = []
         num_samples = len(test_df)
@@ -121,7 +122,10 @@ class Runner:
         return all_explanations
 
     def _save_result(
-        self, model_history: ModelHistory, analysis_dict: Dict, image_details: List[Explanation]
+        self,
+        model_history: ModelHistory,
+        analysis_dict: Dict,
+        image_details: List[Explanation],
     ) -> ExperimentResult:
 
         result = ExperimentResult(

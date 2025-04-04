@@ -32,7 +32,10 @@ class Dataset:
         except Exception as e:
             raise RuntimeError(f"Failed to load dataset from {repo}: {e}") from e
 
-    def _process_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _process_dataframe(
+        self,
+        df: pd.DataFrame,
+    ) -> pd.DataFrame:
         df["image_id"] = df["image_id"].astype(str).str[:16]
         df = df.drop_duplicates(subset=["image_id"], keep="first")
         df["image_bytes"] = df["image"].apply(lambda x: x["bytes"])
@@ -40,7 +43,12 @@ class Dataset:
         df[["gender", "race", "age"]] = df[["gender", "race", "age"]].astype(int)
         return df
 
-    def _sample_by_strata(self, df: pd.DataFrame, target_sample_size: int, seed: int) -> pd.DataFrame:
+    def _sample_by_strata(
+        self,
+        df: pd.DataFrame,
+        target_sample_size: int,
+        seed: int,
+    ) -> pd.DataFrame:
         samples = []
         total_rows = len(df)
         if total_rows == 0:
@@ -72,7 +80,11 @@ class Dataset:
         strata_sample = self._sample_by_strata(subset_df, target_size, seed)
         return strata_sample
 
-    def _sample_dataframe(self, df: pd.DataFrame, seed: int) -> pd.DataFrame:
+    def _sample_dataframe(
+        self,
+        df: pd.DataFrame,
+        seed: int,
+    ) -> pd.DataFrame:
         target_col = self.config.experiment.predict_attribute.value
         strata_cols = [col.value for col in DemographicAttribute if col.value != target_col]
 
@@ -101,7 +113,11 @@ class Dataset:
         combined_df = combined_df.drop(columns=["strata"])
         return combined_df
 
-    def _split_dataframe(self, df: pd.DataFrame, seed: int) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def _split_dataframe(
+        self,
+        df: pd.DataFrame,
+        seed: int,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         stratify_col_name = self.config.experiment.predict_attribute.value
         stratify_data = (
             df[stratify_col_name]
@@ -164,7 +180,11 @@ class Dataset:
 
         return image_np.astype(np.float32)
 
-    def _preprocess_dataframe_split(self, df: pd.DataFrame, purpose: DatasetSplit) -> pd.DataFrame:
+    def _preprocess_dataframe_split(
+        self,
+        df: pd.DataFrame,
+        purpose: DatasetSplit,
+    ) -> pd.DataFrame:
         processed_images = []
         for _, row in df.iterrows():
             label_dict = {
@@ -179,7 +199,11 @@ class Dataset:
         df_copy.loc[:, "processed_image"] = processed_images
         return df_copy
 
-    def _save_images(self, df: pd.DataFrame, purpose: DatasetSplit) -> None:
+    def _save_images(
+        self,
+        df: pd.DataFrame,
+        purpose: DatasetSplit,
+    ) -> None:
         path = os.path.join(
             self.config.output.base_path,
             self.config.experiment_id,
@@ -204,7 +228,10 @@ class Dataset:
             filepath = os.path.join(path, filename)
             pil_img.save(filepath, format="PNG")
 
-    def prepare_datasets(self, seed: int) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def prepare_datasets(
+        self,
+        seed: int,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         raw_df = self._load_raw_dataframe()
         processed_df = self._process_dataframe(raw_df)
         sampled_df = self._sample_dataframe(processed_df, seed)
