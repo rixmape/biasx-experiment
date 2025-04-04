@@ -172,12 +172,12 @@ class Dataset:
         df: pd.DataFrame,
         purpose: DatasetSplit,
     ) -> None:
-        path = os.path.join(
+        savepath = os.path.join(
             self.settings.output.base_path,
             self.settings.experiment_id,
             f"{purpose.value.lower()}_images",
         )
-        os.makedirs(path, exist_ok=True)
+        os.makedirs(savepath, exist_ok=True)
 
         for _, row in df.iterrows():
             img_array = row["processed_image"]
@@ -191,7 +191,7 @@ class Dataset:
                 pil_img = Image.fromarray(img_to_save, mode="RGB")
 
             filename = f"{purpose.value.lower()}_{img_id}.png"
-            filepath = os.path.join(path, filename)
+            filepath = os.path.join(savepath, filename)
             pil_img.save(filepath, format="PNG")
 
     def prepare_datasets(

@@ -163,7 +163,8 @@ class Explanation(BaseModel):
     detected_features: List[FeatureDetails] = Field(...)
 
 
-class ModelHistory(BaseModel):
+class ModelMetadata(BaseModel):
+    path: str = Field(..., min_length=1)
     train_loss: Tuple[float, ...] = Field(...)
     train_accuracy: Tuple[float, ...] = Field(...)
     val_loss: Tuple[float, ...] = Field(...)
@@ -173,7 +174,7 @@ class ModelHistory(BaseModel):
 class ExperimentResult(BaseModel):
     id: str = Field(..., min_length=1)
     settings: Dict = Field(...)
-    model_history: ModelHistory = Field(...)
+    model: ModelMetadata = Field(...)
     bias_metrics: BiasMetrics = Field(...)
     feature_distributions: List[FeatureDistribution] = Field(...)
     performance_metrics: List[AttributePerformanceMetrics] = Field(...)

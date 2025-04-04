@@ -16,7 +16,7 @@ from .definitions import (
     ExperimentResult,
     Explanation,
     Gender,
-    ModelHistory,
+    ModelMetadata,
     Race,
 )
 from .explainer import Explainer
@@ -123,7 +123,7 @@ class Runner:
 
     def _save_result(
         self,
-        model_history: ModelHistory,
+        model_metadata: ModelMetadata,
         analysis_dict: Dict,
         image_details: List[Explanation],
     ) -> ExperimentResult:
@@ -131,33 +131,33 @@ class Runner:
         result = ExperimentResult(
             id=self.settings.experiment_id,
             settings=self.settings.model_dump(mode="json"),
-            model_history=model_history,
+            model=model_metadata,
             bias_metrics=analysis_dict["bias"],
             feature_distributions=analysis_dict["distributions"],
             performance_metrics=analysis_dict["performance"],
             analyzed_images=image_details,
         )
 
-        results_dir = os.path.join(self.settings.output.base_path, self.settings.experiment_id)
-        os.makedirs(results_dir, exist_ok=True)
+        savepath = os.path.join(self.settings.output.base_path, self.settings.experiment_id)
+        os.makedirs(savepath, exist_ok=True)
         filename = f"{self.settings.experiment_id}.json"
-        path = os.path.join(results_dir, filename)
+        filepath = os.path.join(savepath, filename)
 
         try:
             json_string = result.model_dump_json(exclude_none=True, indent=2)
-            with open(path, "w") as f:
+            with open(filepath, "w") as f:
                 f.write(json_string)
         except Exception as e:
-            raise RuntimeError(f"Failed to save results to {path}: {e}") from e
+            raise RuntimeError(f"Failed to save results to {filepath}: {e}") from e
 
         return result
 
     def run_experiment(self) -> ExperimentResult:
         train_df, val_df, test_df = self.dataset.prepare_datasets(self.settings.experiment.random_seed)
 
-        model, history = self.model.get_model_and_history(train_df, val_df)
+        model, model_metadata = self.model.get_model_and_history(train_df, val_df)
         explanations = self._get_all_explanations(test_df, model)
         analysis_dict = self.analyzer.get_bias_analysis(explanations)
-        result = self._save_result(history, analysis_dict, explanations)
+        result = self._save_result(model_metadata, analysis_dict, explanations)
 
         return result

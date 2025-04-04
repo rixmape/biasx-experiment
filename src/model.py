@@ -1,3 +1,4 @@
+import os
 from typing import Tuple
 
 import numpy as np
@@ -5,7 +6,7 @@ import pandas as pd
 import tensorflow as tf
 
 # isort: off
-from .definitions import Age, DemographicAttribute, Gender, ModelHistory, Race
+from .definitions import Age, DemographicAttribute, Gender, ModelMetadata, Race
 from .settings import Settings
 
 
@@ -60,11 +61,24 @@ class Model:
         )
         return model
 
+    def save_model(self, model) -> str:
+        savepath = os.path.join(self.settings.output.base_path, self.settings.experiment_id)
+        os.makedirs(savepath, exist_ok=True)
+        filename = f"{self.settings.experiment_id}.keras"
+        filepath = os.path.join(savepath, filename)
+
+        try:
+            model.save(filepath)
+            model_rel_path = os.path.relpath(filepath, self.settings.output.base_path)
+            return model_rel_path
+        except Exception as e:
+            raise RuntimeError(f"Failed to save model to {filepath}: {e}")
+
     def get_model_and_history(
         self,
         train_df: pd.DataFrame,
         val_df: pd.DataFrame,
-    ) -> Tuple[tf.keras.Model, ModelHistory]:
+    ) -> Tuple[tf.keras.Model, ModelMetadata]:
 
         x_train = np.stack(train_df["processed_image"].values)
         y_train = train_df[self.settings.experiment.predict_attribute.value].values
@@ -74,6 +88,7 @@ class Model:
         validation_data = (x_val, y_val)
 
         model = self._build_model()
+        model_path = self.save_model(model)
 
         history_callback = model.fit(
             x_train,
@@ -84,11 +99,12 @@ class Model:
             verbose=0,
         )
 
-        history = ModelHistory(
+        metadata = ModelMetadata(
+            path=model_path,
             train_loss=tuple(history_callback.history.get("loss", [])),
             train_accuracy=tuple(history_callback.history.get("accuracy", [])),
             val_loss=tuple(history_callback.history.get("val_loss", [])),
             val_accuracy=tuple(history_callback.history.get("val_accuracy", [])),
         )
 
-        return model, history
+        return model, metadata
