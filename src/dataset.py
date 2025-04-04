@@ -9,15 +9,16 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 
 # isort: off
-from .definitions import DatasetSplit, DemographicAttribute
+from .definitions import DatasetSplit, DemographicAttribute, ProgressCallback
 from .explainer import Explainer
 from .settings import Settings
 
 
 class Dataset:
-    def __init__(self, settings: Settings, explainer: Explainer):
+    def __init__(self, settings: Settings, explainer: Explainer, progress_callback: ProgressCallback = None):
         self.settings = settings
         self.explainer = explainer
+        self.progress_callback = progress_callback
 
     def _load_raw_dataframe(self) -> pd.DataFrame:
         try:

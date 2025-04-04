@@ -13,14 +13,16 @@ from .definitions import (
     Feature,
     FeatureDistribution,
     Gender,
+    ProgressCallback,
     Race,
 )
 from .settings import Settings
 
 
 class Analyzer:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, progress_callback: ProgressCallback = None):
         self.settings = settings
+        self.progress_callback = progress_callback
 
     def _get_attribute_enum_class(
         self,

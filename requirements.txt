@@ -6,6 +6,7 @@ scikit-learn
 opencv-python
 pandas
 mediapipe
-tensorflow
+tensorflow[and-cuda]
 tf_keras_vis
 pyarrow
+streamlit

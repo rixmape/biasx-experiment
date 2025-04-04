@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from pydantic import BaseModel, Field, computed_field
 
@@ -179,3 +179,6 @@ class ExperimentResult(BaseModel):
     feature_distributions: List[FeatureDistribution] = Field(...)
     performance_metrics: List[AttributePerformanceMetrics] = Field(...)
     analyzed_images: List[Explanation] = Field(...)
+
+
+ProgressCallback = Optional[Callable[[str], None]]

@@ -11,13 +11,14 @@ from mediapipe.tasks.python.vision.face_landmarker import FaceLandmarker, FaceLa
 from tf_keras_vis.gradcam_plus_plus import GradcamPlusPlus
 
 # isort: off
-from .definitions import Age, Feature, FeatureDetails, Gender, Race
+from .definitions import Age, Feature, FeatureDetails, Gender, ProgressCallback, Race
 from .settings import Settings
 
 
 class Explainer:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, progress_callback: ProgressCallback = None):
         self.settings = settings
+        self.progress_callback = progress_callback
         self.landmarker = self._load_landmarker()
         self.feature_indices_map = self._load_feature_indices_map()
 
