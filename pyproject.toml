@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "biasx-framework"
+version = "0.1.0"
+description = "A framework for conducting machine learning experiments focused on analyzing bias in facial classification models."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+  {name = "Rixdon Niño Mape", email = "rixdonninorecario.mape@bicol-u.edu.ph"},
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
+dependencies = [
+    "mediapipe",
+    "numpy",
+    "huggingface-hub",
+    "opencv-python",
+    "pandas",
+    "Pillow",
+    "scikit-learn",
+    "tensorflow[and-cuda]",
+    "tf-keras-vis",
+    "pydantic",
+    "pyarrow",
+]
+
+[project.urls]
+Repository = "https://github.com/rixmape/biasx-framework"
+
+[tool.setuptools.packages.find]
+where = ["src"]
