@@ -11,13 +11,13 @@ from mediapipe.tasks.python.vision.face_landmarker import FaceLandmarker, FaceLa
 from tf_keras_vis.gradcam_plus_plus import GradcamPlusPlus
 
 # isort: off
-from definitions import Age, Feature, FeatureDetails, Gender, Race
-from settings import Config
+from .definitions import Age, Feature, FeatureDetails, Gender, Race
+from .settings import Settings
 
 
 class Explainer:
-    def __init__(self, config: Config):
-        self.config = config
+    def __init__(self, settings: Settings):
+        self.settings = settings
         self.landmarker = self._load_landmarker()
         self.feature_indices_map = self._load_feature_indices_map()
 
@@ -98,7 +98,7 @@ class Explainer:
         except IndexError:
             return None
 
-        pad = self.config.analysis.mask_pixel_padding
+        pad = self.settings.analysis.mask_pixel_padding
         min_x_pad = max(0, min_x - pad)
         min_y_pad = max(0, min_y - pad)
         max_x_pad = min(img_width, max_x + pad)
@@ -121,7 +121,7 @@ class Explainer:
         self,
         image_np: np.ndarray,
     ) -> np.ndarray:
-        if not self.config.analysis.mask_features:
+        if not self.settings.analysis.mask_features:
             return image_np
 
         pixel_coords = self._get_pixel_landmarks(image_np)
@@ -131,7 +131,7 @@ class Explainer:
         masked_image = image_np.copy()
         img_height, img_width = image_np.shape[:2]
 
-        for feature_enum in self.config.analysis.mask_features:
+        for feature_enum in self.settings.analysis.mask_features:
             feature_details = self._get_feature_bbox(pixel_coords, feature_enum, img_height, img_width)
             if feature_details:
                 masked_image[
@@ -211,14 +211,14 @@ class Explainer:
         heatmap: np.ndarray,
         image_id: str,
     ) -> Optional[str]:
-        path = os.path.join(self.config.output.base_path, self.config.experiment_id, "heatmaps")
+        path = os.path.join(self.settings.output.base_path, self.settings.experiment_id, "heatmaps")
         os.makedirs(path, exist_ok=True)
         filename = f"heatmap_{image_id}.npy"
         filepath = os.path.join(path, filename)
 
         try:
             np.save(filepath, heatmap.astype(np.float16))
-            heatmap_rel_path = os.path.relpath(filepath, self.config.output.base_path)
+            heatmap_rel_path = os.path.relpath(filepath, self.settings.output.base_path)
             return heatmap_rel_path
         except Exception as e:
             raise RuntimeError(f"Failed to save heatmap to {filepath}: {e}") from e
@@ -230,7 +230,7 @@ class Explainer:
     ) -> List[FeatureDetails]:
         for feature_detail in features:
             attention_score = self._calculate_single_feature_attention(feature_detail, heatmap)
-            is_key = attention_score >= self.config.analysis.key_feature_threshold
+            is_key = attention_score >= self.settings.analysis.key_feature_threshold
             feature_detail.attention_score = float(attention_score)
             feature_detail.is_key_feature = bool(is_key)
         return features

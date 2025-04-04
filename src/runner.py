@@ -8,9 +8,9 @@ import tensorflow as tf
 from tf_keras_vis import ModelVisualization
 
 # isort: off
-from analyzer import Analyzer
-from dataset import Dataset
-from definitions import (
+from .analyzer import Analyzer
+from .dataset import Dataset
+from .definitions import (
     Age,
     DemographicAttribute,
     ExperimentResult,
@@ -19,22 +19,22 @@ from definitions import (
     ModelHistory,
     Race,
 )
-from explainer import Explainer
-from model import Model
-from settings import Config
+from .explainer import Explainer
+from .model import Model
+from .settings import Settings
 
 
 class Runner:
-    def __init__(self, config: Config):
-        self.config = config
+    def __init__(self, settings: Settings):
+        self.settings = settings
         self._set_random_seeds()
-        self.explainer = Explainer(self.config)
-        self.dataset = Dataset(self.config, self.explainer)
-        self.model = Model(self.config)
-        self.analyzer = Analyzer(self.config)
+        self.explainer = Explainer(self.settings)
+        self.dataset = Dataset(self.settings, self.explainer)
+        self.model = Model(self.settings)
+        self.analyzer = Analyzer(self.settings)
 
     def _set_random_seeds(self) -> None:
-        seed = self.config.experiment.random_seed
+        seed = self.settings.experiment.random_seed
         random.seed(seed)
         np.random.seed(seed)
         tf.random.set_seed(seed)
@@ -47,8 +47,8 @@ class Runner:
         heatmap_generator: ModelVisualization,
     ) -> List[Explanation]:
 
-        target_col = self.config.experiment.predict_attribute.value
-        target_attr_enum_class = self.analyzer._get_attribute_enum_class(self.config.experiment.predict_attribute)
+        target_col = self.settings.experiment.predict_attribute.value
+        target_attr_enum_class = self.analyzer._get_attribute_enum_class(self.settings.experiment.predict_attribute)
 
         images = np.stack(batch_df["processed_image"].values)
         target_labels = batch_df[target_col].values
@@ -108,7 +108,7 @@ class Runner:
         heatmap_generator = self.explainer.get_heatmap_generator(model)
         all_explanations = []
         num_samples = len(test_df)
-        batch_size = self.config.model.batch_size
+        batch_size = self.settings.model.batch_size
 
         for i in range(0, num_samples, batch_size):
             end_idx = min(i + batch_size, num_samples)
@@ -129,8 +129,8 @@ class Runner:
     ) -> ExperimentResult:
 
         result = ExperimentResult(
-            id=self.config.experiment_id,
-            config=self.config.model_dump(mode="json"),
+            id=self.settings.experiment_id,
+            settings=self.settings.model_dump(mode="json"),
             model_history=model_history,
             bias_metrics=analysis_dict["bias"],
             feature_distributions=analysis_dict["distributions"],
@@ -138,9 +138,9 @@ class Runner:
             analyzed_images=image_details,
         )
 
-        results_dir = os.path.join(self.config.output.base_path, self.config.experiment_id)
+        results_dir = os.path.join(self.settings.output.base_path, self.settings.experiment_id)
         os.makedirs(results_dir, exist_ok=True)
-        filename = f"{self.config.experiment_id}.json"
+        filename = f"{self.settings.experiment_id}.json"
         path = os.path.join(results_dir, filename)
 
         try:
@@ -153,7 +153,7 @@ class Runner:
         return result
 
     def run_experiment(self) -> ExperimentResult:
-        train_df, val_df, test_df = self.dataset.prepare_datasets(self.config.experiment.random_seed)
+        train_df, val_df, test_df = self.dataset.prepare_datasets(self.settings.experiment.random_seed)
 
         model, history = self.model.get_model_and_history(train_df, val_df)
         explanations = self._get_all_explanations(test_df, model)

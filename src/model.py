@@ -5,16 +5,16 @@ import pandas as pd
 import tensorflow as tf
 
 # isort: off
-from definitions import Age, DemographicAttribute, Gender, ModelHistory, Race
-from settings import Config
+from .definitions import Age, DemographicAttribute, Gender, ModelHistory, Race
+from .settings import Settings
 
 
 class Model:
-    def __init__(self, config: Config):
-        self.config = config
+    def __init__(self, settings: Settings):
+        self.settings = settings
 
     def _get_num_classes(self) -> int:
-        target_attr = self.config.experiment.predict_attribute
+        target_attr = self.settings.experiment.predict_attribute
         if target_attr == DemographicAttribute.GENDER:
             return len(Gender)
         elif target_attr == DemographicAttribute.RACE:
@@ -23,10 +23,10 @@ class Model:
             return len(Age)
 
     def _build_model(self) -> tf.keras.Model:
-        input_channels = 1 if self.config.dataset.use_grayscale else 3
+        input_channels = 1 if self.settings.dataset.use_grayscale else 3
         input_shape = (
-            self.config.dataset.image_size,
-            self.config.dataset.image_size,
+            self.settings.dataset.image_size,
+            self.settings.dataset.image_size,
             input_channels,
         )
         num_classes = self._get_num_classes()
@@ -67,11 +67,11 @@ class Model:
     ) -> Tuple[tf.keras.Model, ModelHistory]:
 
         x_train = np.stack(train_df["processed_image"].values)
-        y_train = train_df[self.config.experiment.predict_attribute.value].values
+        y_train = train_df[self.settings.experiment.predict_attribute.value].values
 
         if not val_df.empty:
             x_val = np.stack(val_df["processed_image"].values)
-            y_val = val_df[self.config.experiment.predict_attribute.value].values
+            y_val = val_df[self.settings.experiment.predict_attribute.value].values
             validation_data = (x_val, y_val)
         else:
             validation_data = None
@@ -82,8 +82,8 @@ class Model:
             x_train,
             y_train,
             validation_data=validation_data,
-            epochs=self.config.model.epochs,
-            batch_size=self.config.model.batch_size,
+            epochs=self.settings.model.epochs,
+            batch_size=self.settings.model.batch_size,
             verbose=0,
         )
 

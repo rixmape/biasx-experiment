@@ -1,7 +1,7 @@
 # isort: off
-from definitions import Age, DatasetSource, DemographicAttribute, Feature, Gender, Race
-from runner import Runner
-from settings import AnalysisSettings, Config, DatasetSettings, ExperimentSettings, ModelSettings, OutputSettings
+from src.definitions import Age, DatasetSource, DemographicAttribute, Feature, Gender, Race
+from src.runner import Runner
+from src.settings import AnalysisSettings, Settings, DatasetSettings, ExperimentSettings, ModelSettings, OutputSettings
 
 
 def main():
@@ -40,7 +40,7 @@ def main():
         log_path="logs",
     )
 
-    config = Config(
+    settings = Settings(
         experiment=exp_settings,
         analysis=analysis_settings,
         dataset=dataset_settings,
@@ -48,13 +48,13 @@ def main():
         output=output_settings,
     )
 
-    print(f"Starting experiment run with ID: {config.experiment_id}")
+    print(f"Starting experiment run with ID: {settings.experiment_id}")
 
     try:
-        runner = Runner(config=config)
+        runner = Runner(settings=settings)
         experiment_result = runner.run_experiment()
         print(f"Experiment {experiment_result.id} completed successfully.")
-        print(f"Saved results to {config.output.base_path}/{experiment_result.id}")
+        print(f"Saved results to {settings.output.base_path}/{experiment_result.id}")
 
     except Exception as e:
         print(f"Experiment failed: {e}")

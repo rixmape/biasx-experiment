@@ -9,19 +9,19 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 
 # isort: off
-from definitions import DatasetSplit, DemographicAttribute
-from explainer import Explainer
-from settings import Config
+from .definitions import DatasetSplit, DemographicAttribute
+from .explainer import Explainer
+from .settings import Settings
 
 
 class Dataset:
-    def __init__(self, config: Config, explainer: Explainer):
-        self.config = config
+    def __init__(self, settings: Settings, explainer: Explainer):
+        self.settings = settings
         self.explainer = explainer
 
     def _load_raw_dataframe(self) -> pd.DataFrame:
         try:
-            repo = f"rixmape/{self.config.dataset.source_name.value}"
+            repo = f"rixmape/{self.settings.dataset.source_name.value}"
             path = hf_hub_download(
                 repo_id=repo,
                 filename="data/train-00000-of-00001.parquet",
@@ -85,7 +85,7 @@ class Dataset:
         df: pd.DataFrame,
         seed: int,
     ) -> pd.DataFrame:
-        target_col = self.config.experiment.predict_attribute.value
+        target_col = self.settings.experiment.predict_attribute.value
         strata_cols = [col.value for col in DemographicAttribute if col.value != target_col]
 
         if not strata_cols:
@@ -97,7 +97,7 @@ class Dataset:
         if len(unique_values) == 0:
             raise ValueError("Target column has no unique values after processing. Cannot sample.")
 
-        target_size_per_value = max(1, self.config.dataset.target_size // len(unique_values))
+        target_size_per_value = max(1, self.settings.dataset.target_size // len(unique_values))
 
         sampled_subsets = [
             self._get_sampled_attribute_subset(df, target_col, value, target_size_per_value, seed)
@@ -118,7 +118,7 @@ class Dataset:
         df: pd.DataFrame,
         seed: int,
     ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-        stratify_col_name = self.config.experiment.predict_attribute.value
+        stratify_col_name = self.settings.experiment.predict_attribute.value
         stratify_data = (
             df[stratify_col_name]
             if stratify_col_name in df.columns and df[stratify_col_name].nunique() >= 2  # fmt: skip
@@ -127,12 +127,12 @@ class Dataset:
 
         train_val_df, test_df = train_test_split(
             df,
-            test_size=self.config.dataset.test_ratio,
+            test_size=self.settings.dataset.test_ratio,
             random_state=seed,
             stratify=stratify_data,
         )
 
-        adjusted_val_ratio = min(1.0, self.config.dataset.validation_ratio / (1.0 - self.config.dataset.test_ratio))
+        adjusted_val_ratio = min(1.0, self.settings.dataset.validation_ratio / (1.0 - self.settings.dataset.test_ratio))
 
         stratify_train_val = (
             train_val_df[stratify_col_name]
@@ -160,20 +160,20 @@ class Dataset:
         if image_np is None:
             raise ValueError("cv2.imdecode returned None for an image.")
         image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
-        image_np = cv2.resize(image_np, (self.config.dataset.image_size, self.config.dataset.image_size))
+        image_np = cv2.resize(image_np, (self.settings.dataset.image_size, self.settings.dataset.image_size))
         image_np = image_np.astype(np.float32) / 255.0
 
-        if purpose == DatasetSplit.TRAIN and self.config.analysis.mask_demographic is not None:
-            mask_attribute_type_enum = self.config.analysis.protected_attribute
-            mask_attribute_value_enum = self.config.analysis.mask_demographic
+        if purpose == DatasetSplit.TRAIN and self.settings.analysis.mask_demographic is not None:
+            mask_attribute_type_enum = self.settings.analysis.protected_attribute
+            mask_attribute_value_enum = self.settings.analysis.mask_demographic
             attribute_key = mask_attribute_type_enum.value
             actual_image_value = label_dict.get(attribute_key)
 
             if actual_image_value is not None and actual_image_value == mask_attribute_value_enum.value:
-                if self.config.analysis.mask_features:
+                if self.settings.analysis.mask_features:
                     image_np = self.explainer.apply_mask(image_np)
 
-        if self.config.dataset.use_grayscale:
+        if self.settings.dataset.use_grayscale:
             if len(image_np.shape) == 3 and image_np.shape[-1] == 3:
                 image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
             image_np = np.expand_dims(image_np, axis=-1)
@@ -205,8 +205,8 @@ class Dataset:
         purpose: DatasetSplit,
     ) -> None:
         path = os.path.join(
-            self.config.output.base_path,
-            self.config.experiment_id,
+            self.settings.output.base_path,
+            self.settings.experiment_id,
             f"{purpose.value.lower()}_images",
         )
         os.makedirs(path, exist_ok=True)

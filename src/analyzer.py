@@ -4,7 +4,7 @@ from typing import Dict, List, Union
 import numpy as np
 
 # isort: off
-from definitions import (
+from .definitions import (
     Age,
     AttributePerformanceMetrics,
     BiasMetrics,
@@ -15,12 +15,12 @@ from definitions import (
     Gender,
     Race,
 )
-from settings import Config
+from .settings import Settings
 
 
 class Analyzer:
-    def __init__(self, config: Config):
-        self.config = config
+    def __init__(self, settings: Settings):
+        self.settings = settings
 
     def _get_attribute_enum_class(
         self,
@@ -125,7 +125,7 @@ class Analyzer:
         predicted_labels = np.array([detail.prediction.value for detail in image_details])
 
         feature_distributions = self._compute_feature_distributions(image_details)
-        attribute_class = self._get_attribute_enum_class(self.config.analysis.protected_attribute)
+        attribute_class = self._get_attribute_enum_class(self.settings.analysis.protected_attribute)
 
         performance_metrics_list = [
             self._compute_attribute_performance_metrics(val, true_labels, predicted_labels)  # fmt: skip

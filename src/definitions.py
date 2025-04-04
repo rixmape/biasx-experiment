@@ -174,7 +174,7 @@ class ModelHistory(BaseModel):
 
 class ExperimentResult(BaseModel):
     id: str = Field(..., min_length=1)
-    config: Dict = Field(...)
+    settings: Dict = Field(...)
     model_history: ModelHistory = Field(...)
     bias_metrics: BiasMetrics = Field(...)
     feature_distributions: List[FeatureDistribution] = Field(...)

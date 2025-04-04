@@ -4,7 +4,8 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 
-from definitions import Age, DatasetSource, DemographicAttribute, Feature, Gender, Race
+# isort: off
+from .definitions import Age, DatasetSource, DemographicAttribute, Feature, Gender, Race
 
 
 class ExperimentSettings(BaseModel):
@@ -39,7 +40,7 @@ class OutputSettings(BaseModel):
     log_path: str = Field(default="logs")
 
 
-class Config(BaseModel):
+class Settings(BaseModel):
     experiment: ExperimentSettings = Field(default_factory=ExperimentSettings)
     analysis: AnalysisSettings = Field(default_factory=AnalysisSettings)
     dataset: DatasetSettings = Field(default_factory=DatasetSettings)
@@ -48,6 +49,6 @@ class Config(BaseModel):
 
     @cached_property
     def experiment_id(self) -> str:
-        config_json = self.model_dump_json(exclude={"experiment_id"})
-        hash_object = hashlib.sha256(config_json.encode())
+        settings_json = self.model_dump_json(exclude={"experiment_id"})
+        hash_object = hashlib.sha256(settings_json.encode())
         return hash_object.hexdigest()[:16]
