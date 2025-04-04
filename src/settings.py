@@ -25,20 +25,6 @@ class AnalysisSettings(BaseModel):
         if self.mask_features:
             if not self.mask_demographic:
                 raise ValueError("If 'mask_features' is set, 'mask_demographic' must also be provided.")
-
-        if self.mask_demographic is not None:
-            expected_type_map = {
-                DemographicAttribute.GENDER: Gender,
-                DemographicAttribute.RACE: Race,
-                DemographicAttribute.AGE: Age,
-            }
-            expected_type = expected_type_map.get(self.protected_attribute)
-            if expected_type and not isinstance(self.mask_demographic, expected_type):
-                raise ValueError(
-                    f"'mask_demographic' type ({type(self.mask_demographic).__name__}) is inconsistent "
-                    f"with 'protected_attribute' ({self.protected_attribute.name}). "
-                    f"Expected type: {expected_type.__name__}"
-                )
         return self
 
 

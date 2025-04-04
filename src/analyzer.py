@@ -105,9 +105,9 @@ class Analyzer:
         tprs = [m.tpr for m in performance_metrics]
         ppvs = [m.ppv for m in performance_metrics]
 
-        demographic_parity = max(select_rates) - min(select_rates) if select_rates else 0.0
-        equalized_odds = max(tprs) - min(tprs) if tprs else 0.0
-        conditional_use_accuracy_equality = max(ppvs) - min(ppvs) if ppvs else 0.0
+        demographic_parity = max(select_rates) - min(select_rates)
+        equalized_odds = max(tprs) - min(tprs)
+        conditional_use_accuracy_equality = max(ppvs) - min(ppvs)
         mean_feature_distribution_bias = np.mean([dist.distribution_bias for dist in distributions])
 
         return BiasMetrics(

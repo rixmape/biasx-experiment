@@ -69,12 +69,9 @@ class Model:
         x_train = np.stack(train_df["processed_image"].values)
         y_train = train_df[self.settings.experiment.predict_attribute.value].values
 
-        if not val_df.empty:
-            x_val = np.stack(val_df["processed_image"].values)
-            y_val = val_df[self.settings.experiment.predict_attribute.value].values
-            validation_data = (x_val, y_val)
-        else:
-            validation_data = None
+        x_val = np.stack(val_df["processed_image"].values)
+        y_val = val_df[self.settings.experiment.predict_attribute.value].values
+        validation_data = (x_val, y_val)
 
         model = self._build_model()
 

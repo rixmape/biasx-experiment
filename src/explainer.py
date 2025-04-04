@@ -121,9 +121,6 @@ class Explainer:
         self,
         image_np: np.ndarray,
     ) -> np.ndarray:
-        if not self.settings.analysis.mask_features:
-            return image_np
-
         pixel_coords = self._get_pixel_landmarks(image_np)
         if not pixel_coords:
             return image_np

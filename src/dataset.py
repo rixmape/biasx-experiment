@@ -43,29 +43,6 @@ class Dataset:
         df[["gender", "race", "age"]] = df[["gender", "race", "age"]].astype(int)
         return df
 
-    def _sample_by_strata(
-        self,
-        df: pd.DataFrame,
-        target_sample_size: int,
-        seed: int,
-    ) -> pd.DataFrame:
-        samples = []
-        total_rows = len(df)
-        if total_rows == 0:
-            return pd.DataFrame(columns=df.columns)
-
-        for _, group in df.groupby("strata"):
-            group_size = len(group)
-            if group_size == 0:
-                continue
-            group_proportion = group_size / total_rows
-            group_sample_size = max(1, round(target_sample_size * group_proportion))
-            replacement_needed = group_size < group_sample_size
-            sample = group.sample(n=group_sample_size, random_state=seed, replace=replacement_needed)
-            samples.append(sample)
-
-        return pd.concat(samples) if samples else pd.DataFrame(columns=df.columns)
-
     def _get_sampled_attribute_subset(
         self,
         df: pd.DataFrame,
@@ -75,10 +52,20 @@ class Dataset:
         seed: int,
     ) -> pd.DataFrame:
         subset_df = df[df[attribute_column] == attribute_value].copy()
-        if subset_df.empty:
-            return subset_df
-        strata_sample = self._sample_by_strata(subset_df, target_size, seed)
-        return strata_sample
+        total_rows = len(subset_df)
+
+        samples = []
+        for _, group in subset_df.groupby("strata"):
+            group_size = len(group)
+            if group_size == 0:
+                continue
+            group_proportion = group_size / total_rows
+            group_sample_size = max(1, round(target_size * group_proportion))
+            replacement_needed = group_size < group_sample_size
+            sample = group.sample(n=group_sample_size, random_state=seed, replace=replacement_needed)
+            samples.append(sample)
+
+        return pd.concat(samples) if samples else pd.DataFrame(columns=subset_df.columns)
 
     def _sample_dataframe(
         self,
@@ -88,15 +75,8 @@ class Dataset:
         target_col = self.settings.experiment.predict_attribute.value
         strata_cols = [col.value for col in DemographicAttribute if col.value != target_col]
 
-        if not strata_cols:
-            df["strata"] = 0
-        else:
-            df["strata"] = df[strata_cols].astype(str).agg("_".join, axis=1)
-
+        df["strata"] = df[strata_cols].astype(str).agg("_".join, axis=1)
         unique_values = df[target_col].unique()
-        if len(unique_values) == 0:
-            raise ValueError("Target column has no unique values after processing. Cannot sample.")
-
         target_size_per_value = max(1, self.settings.dataset.target_size // len(unique_values))
 
         sampled_subsets = [
@@ -119,33 +99,21 @@ class Dataset:
         seed: int,
     ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         stratify_col_name = self.settings.experiment.predict_attribute.value
-        stratify_data = (
-            df[stratify_col_name]
-            if stratify_col_name in df.columns and df[stratify_col_name].nunique() >= 2  # fmt: skip
-            else None
-        )
 
         train_val_df, test_df = train_test_split(
             df,
             test_size=self.settings.dataset.test_ratio,
             random_state=seed,
-            stratify=stratify_data,
+            stratify=df[stratify_col_name],
         )
 
         adjusted_val_ratio = min(1.0, self.settings.dataset.validation_ratio / (1.0 - self.settings.dataset.test_ratio))
 
-        stratify_train_val = (
-            train_val_df[stratify_col_name]
-            if stratify_data is not None
-            and stratify_col_name in train_val_df.columns
-            and train_val_df[stratify_col_name].nunique() >= 2
-            else None
-        )
         train_df, val_df = train_test_split(
             train_val_df,
             test_size=adjusted_val_ratio,
             random_state=seed,
-            stratify=stratify_train_val,
+            stratify=train_val_df[stratify_col_name],
         )
 
         return train_df, val_df, test_df
@@ -221,8 +189,6 @@ class Dataset:
                 pil_img = Image.fromarray(np.squeeze(img_to_save, axis=-1), mode="L")
             elif img_to_save.shape[-1] == 3:
                 pil_img = Image.fromarray(img_to_save, mode="RGB")
-            else:
-                continue
 
             filename = f"{purpose.value.lower()}_{img_id}.png"
             filepath = os.path.join(path, filename)

@@ -144,8 +144,6 @@ class FeatureDistribution(BaseModel):
             + list(self.race_distributions.values())
             + list(self.age_distributions.values())
         )
-        if len(all_dist_values) < 2:
-            return 0.0
         max_diff = 0.0
         for i in range(len(all_dist_values)):
             for j in range(i + 1, len(all_dist_values)):
