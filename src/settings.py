@@ -1,4 +1,5 @@
 import hashlib
+import logging
 from functools import cached_property
 from typing import List, Optional, Union
 
@@ -51,6 +52,8 @@ class ModelSettings(BaseModel):
 class OutputSettings(BaseModel):
     base_path: str = Field(default="outputs", min_length=1)
     log_path: str = Field(default="logs", min_length=1)
+    console_log_level: int = Field(default=logging.INFO)
+    file_log_level: int = Field(default=logging.DEBUG)
 
 
 class Settings(BaseModel):

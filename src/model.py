@@ -6,14 +6,13 @@ import pandas as pd
 import tensorflow as tf
 
 # isort: off
-from .definitions import Age, DemographicAttribute, Gender, ModelMetadata, ProgressCallback, Race
+from .definitions import Age, DemographicAttribute, Gender, ModelMetadata, Race
 from .settings import Settings
 
 
 class Model:
-    def __init__(self, settings: Settings, progress_callback: ProgressCallback = None):
+    def __init__(self, settings: Settings):
         self.settings = settings
-        self.progress_callback = progress_callback
 
     def _get_num_classes(self) -> int:
         target_attr = self.settings.experiment.predict_attribute

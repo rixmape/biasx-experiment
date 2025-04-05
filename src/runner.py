@@ -17,7 +17,6 @@ from .definitions import (
     Explanation,
     Gender,
     ModelMetadata,
-    ProgressCallback,
     Race,
 )
 from .explainer import Explainer
@@ -26,9 +25,8 @@ from .settings import Settings
 
 
 class Runner:
-    def __init__(self, settings: Settings, progress_callback: ProgressCallback = None):
+    def __init__(self, settings: Settings):
         self.settings = settings
-        self.progress_callback = progress_callback
         self._set_random_seeds()
         self.explainer = Explainer(self.settings)
         self.dataset = Dataset(self.settings, self.explainer)

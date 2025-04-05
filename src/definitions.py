@@ -139,11 +139,7 @@ class FeatureDistribution(BaseModel):
     @computed_field
     @property
     def distribution_bias(self) -> float:
-        all_dist_values = (
-            list(self.gender_distributions.values())
-            + list(self.race_distributions.values())
-            + list(self.age_distributions.values())
-        )
+        all_dist_values = list(self.gender_distributions.values()) + list(self.race_distributions.values()) + list(self.age_distributions.values())
         max_diff = 0.0
         for i in range(len(all_dist_values)):
             for j in range(i + 1, len(all_dist_values)):
@@ -180,6 +176,3 @@ class ExperimentResult(BaseModel):
     feature_distributions: List[FeatureDistribution] = Field(...)
     performance_metrics: List[AttributePerformanceMetrics] = Field(...)
     analyzed_images: List[Explanation] = Field(...)
-
-
-ProgressCallback = Optional[Callable[[str], None]]
