@@ -87,8 +87,12 @@ class Runner:
                 image_id,
             )
 
+            folder = os.path.join(self.settings.output.base_path, self.settings.experiment_id, "test_images")
+            image_path = os.path.join(folder, f"test_{image_id}.png")
+
             explanation = Explanation(
-                image_id=image_id,
+                id=image_id,
+                image_path=image_path,
                 label=true_label_enum,
                 prediction=predicted_label_enum,
                 gender=gender_enum,

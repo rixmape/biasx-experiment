@@ -178,15 +178,14 @@ def render_confidence_score_distribution(result: ExperimentResult):
 
 
 @st.dialog("Image Explanation Details")
-def show_details_dialog(img_explanation: Explanation, image_folder: str, output_base_path: str):
-    st.subheader(f"Image ID: `{img_explanation.image_id}`")
+def show_details_dialog(explanation: Explanation):
+    st.subheader(f"Image ID: `{explanation.id}`")
 
-    image_path = os.path.join(image_folder, f"test_{img_explanation.image_id}.png")
-    heatmap_rel_path = img_explanation.heatmap_path
-    heatmap_abs_path = os.path.join(output_base_path, heatmap_rel_path) if heatmap_rel_path else None
+    image_path = explanation.image_path
+    heatmap_path = explanation.heatmap_path
 
-    original_image_pil = None
-    overlay_image_rgb = None
+    original_image = None
+    overlay_image = None
 
     col1, col2 = st.columns(2)
 
@@ -194,19 +193,19 @@ def show_details_dialog(img_explanation: Explanation, image_folder: str, output_
         st.markdown("**Original Image**")
         if os.path.exists(image_path):
             try:
-                original_image_pil = Image.open(image_path)
-                st.image(original_image_pil, use_container_width=True)
+                original_image = Image.open(image_path)
+                st.image(original_image, use_container_width=True)
             except Exception as e:
                 st.error(f"Failed to load image: {e}")
         else:
             st.warning("Image file not found.")
 
-    if original_image_pil and heatmap_abs_path and os.path.exists(heatmap_abs_path):
+    if original_image and heatmap_path and os.path.exists(heatmap_path):
         try:
-            heatmap_f16 = np.load(heatmap_abs_path)
+            heatmap_f16 = np.load(heatmap_path)
             heatmap_f32 = heatmap_f16.astype(np.float32)
 
-            img_rgb_u8 = np.array(original_image_pil.convert("RGB"))
+            img_rgb_u8 = np.array(original_image.convert("RGB"))
             img_bgr_u8 = cv2.cvtColor(img_rgb_u8, cv2.COLOR_RGB2BGR)
             h, w = img_bgr_u8.shape[:2]
 
@@ -215,29 +214,29 @@ def show_details_dialog(img_explanation: Explanation, image_folder: str, output_
             heatmap_color_bgr = cv2.applyColorMap(heatmap_norm_u8, cv2.COLORMAP_JET)
 
             overlay_bgr = cv2.addWeighted(heatmap_color_bgr, 0.5, img_bgr_u8, 0.5, 0)
-            overlay_image_rgb = cv2.cvtColor(overlay_bgr, cv2.COLOR_BGR2RGB)
+            overlay_image = cv2.cvtColor(overlay_bgr, cv2.COLOR_BGR2RGB)
 
         except Exception as e:
-            st.error(f"Failed to process heatmap/overlay: {e}")
-            overlay_image_rgb = None
+            st.error(f"Failed to process heatmap: {e}")
+            overlay_image = None
 
     with col2:
         st.markdown("**Heatmap Overlay**")
-        if overlay_image_rgb is not None:
-            st.image(overlay_image_rgb, use_container_width=True)
-        elif not heatmap_abs_path:
+        if overlay_image is not None:
+            st.image(overlay_image, use_container_width=True)
+        elif not heatmap_path:
             st.info("No heatmap data available.")
-        elif not os.path.exists(heatmap_abs_path):
+        elif not os.path.exists(heatmap_path):
             st.warning("Heatmap file not found.")
         else:
-            st.warning("Could not generate overlay.")
+            st.warning("Could not generate heatmap.")
 
-    true_label = img_explanation.label.name
-    pred_label = img_explanation.prediction.name
+    true_label = explanation.label.name
+    pred_label = explanation.prediction.name
     status = "✅ Correct" if true_label == pred_label else "❌ Incorrect"
     st.caption(f"**True:** {true_label} | **Pred:** {pred_label} ({status})")
 
-    key_features = [f.feature.name.replace("_", " ").title() for f in img_explanation.detected_features if f.is_key_feature]
+    key_features = [f.feature.name.replace("_", " ").title() for f in explanation.detected_features if f.is_key_feature]
     key_features_str = ", ".join(key_features) if key_features else "None detected"
     st.caption(f"**Key Features:** {key_features_str}")
 
@@ -248,10 +247,6 @@ def render_example_visual_explanations(result: ExperimentResult, max_examples: i
     if not result.analyzed_images:
         st.warning("No analyzed image data available to display examples.")
         return
-
-    output_base_path = result.settings.get("output", {}).get("base_path", "outputs")
-    experiment_id = result.id
-    image_folder = os.path.join(output_base_path, experiment_id, "test_images")
 
     num_images = min(len(result.analyzed_images), max_examples)
     if num_images == 0:
@@ -266,17 +261,15 @@ def render_example_visual_explanations(result: ExperimentResult, max_examples: i
         cols = st.columns(cols_per_row, gap="small")
         for col_index in range(cols_per_row):
             try:
-                img_explanation: Explanation = next(image_iterator)
+                explanation: Explanation = next(image_iterator)
                 with cols[col_index]:
-                    image_filename = f"test_{img_explanation.image_id}.png"
-                    image_path = os.path.join(image_folder, image_filename)
-                    if os.path.exists(image_path):
-                        st.image(image_path, use_container_width=True)
+                    if os.path.exists(explanation.image_path):
+                        st.image(explanation.image_path, use_container_width=True)
                     else:
-                        st.caption(f"Img {img_explanation.image_id} N/A")
+                        st.caption(f"Img {explanation.id} N/A")
 
-                    if st.button(f"See Details", key=f"btn_{img_explanation.image_id}", use_container_width=True):
-                        show_details_dialog(img_explanation, image_folder, output_base_path)
+                    if st.button(f"See Details", key=f"btn_{explanation.id}", use_container_width=True):
+                        show_details_dialog(explanation)
 
             except StopIteration:
                 break

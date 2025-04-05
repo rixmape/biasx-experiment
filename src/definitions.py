@@ -152,7 +152,8 @@ class FeatureDistribution(BaseModel):
 
 
 class Explanation(BaseModel):
-    image_id: str = Field(..., min_length=1)
+    id: str = Field(..., min_length=1)
+    image_path: Optional[str] = Field(..., min_length=1)
     label: Union[Gender, Race, Age] = Field(...)
     prediction: Union[Gender, Race, Age] = Field(...)
     gender: Gender = Field(...)

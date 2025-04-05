@@ -70,8 +70,7 @@ class Model:
 
         try:
             model.save(filepath)
-            model_rel_path = os.path.relpath(filepath, self.settings.output.base_path)
-            return model_rel_path
+            return filepath
         except Exception as e:
             raise RuntimeError(f"Failed to save model to {filepath}: {e}")
 

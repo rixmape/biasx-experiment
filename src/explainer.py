@@ -216,8 +216,7 @@ class Explainer:
 
         try:
             np.save(filepath, heatmap.astype(np.float16))
-            heatmap_rel_path = os.path.relpath(filepath, self.settings.output.base_path)
-            return heatmap_rel_path
+            return filepath
         except Exception as e:
             raise RuntimeError(f"Failed to save heatmap to {filepath}: {e}") from e
 
