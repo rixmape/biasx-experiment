@@ -2,6 +2,7 @@
 __pycache__
 logs
 outputs
+artifacts
 
 *.egg-info
 *tmp

@@ -1,10 +1,16 @@
-clean:
-	find app -type d -name '__pycache__' -exec rm -rf {} +
-	find src -type d -name '__pycache__' -exec rm -rf {} +
+copy:
+	@rm -rf tmp
+	@mkdir -p tmp
+	@rsync -a \
+		--exclude='.git' \
+		--exclude='.venv' \
+		--exclude='logs' \
+		--exclude='outputs' \
+		--exclude='__pycache__' \
+		--exclude='*tmp*' \
+		--exclude='tmp' \
+		. tmp/
+	@echo "Project copied to tmp/"
 
-compile: clean
-	rm -rf tmp-codes
-	mkdir -p tmp-codes
-	cp -r app tmp-codes
-	cp -r src tmp-codes
-	cp app.py tmp-codes
+deploy:
+	@streamlit run app.py

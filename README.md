@@ -1,6 +1,6 @@
-# BiasX Framework
+# BiasX Experiment
 
-A framework for conducting machine learning experiments focused on analyzing fairness and bias in facial recognition models.
+An experimental framework for conducting machine learning experiments focused on analyzing fairness and bias in facial recognition models.
 
 ## Core Features
 
@@ -16,7 +16,7 @@ A framework for conducting machine learning experiments focused on analyzing fai
 Clone the repository and install the package using pip:
 
 ```bash
-git clone https://github.com/rixmape/biasx-framework
-cd biasx-framework
+git clone https://github.com/rixmape/biasx-experiment
+cd biasx-experiment
 pip install .
 ```
