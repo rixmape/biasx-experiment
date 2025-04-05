@@ -7,7 +7,8 @@ from .settings_ui import render_analysis_tab_widgets, render_dataset_tab_widgets
 
 
 def render_settings_page():
-    st.subheader("Settings")
+    st.subheader("Configure experiment settings")
+    st.markdown("Please fill in the required fields and click the :red[Run Experiment] button to start.")
 
     exp_widgets = {}
     ds_widgets = {}
