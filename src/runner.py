@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 from typing import Dict, List
@@ -22,6 +23,8 @@ from .definitions import (
 from .explainer import Explainer
 from .model import Model
 from .settings import Settings
+
+logger = logging.getLogger(__name__)
 
 
 class Runner:
@@ -152,7 +155,7 @@ class Runner:
             with open(filepath, "w") as f:
                 f.write(json_string)
         except Exception as e:
-            raise RuntimeError(f"Failed to save results to {filepath}: {e}") from e
+            logger.error(f"Failed to save results to {filepath}: {e}")
 
         return result
 

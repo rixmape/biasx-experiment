@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Tuple
 
@@ -8,6 +9,8 @@ import tensorflow as tf
 # isort: off
 from .definitions import Age, DemographicAttribute, Gender, ModelMetadata, Race
 from .settings import Settings
+
+logger = logging.getLogger(__name__)
 
 
 class Model:
@@ -71,7 +74,7 @@ class Model:
             model.save(filepath)
             return filepath
         except Exception as e:
-            raise RuntimeError(f"Failed to save model to {filepath}: {e}")
+            logger.error(f"Failed to save model to {filepath}: {e}")
 
     def get_model_and_history(
         self,

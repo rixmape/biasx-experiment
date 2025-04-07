@@ -9,7 +9,7 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 
 # isort: off
-from .definitions import Age, DatasetSplit, DemographicAttribute, Gender, Race
+from .definitions import DatasetSplit, DemographicAttribute
 from .explainer import Explainer
 from .settings import Settings
 
@@ -79,8 +79,6 @@ class Dataset:
 
         if custom_ratios is None:
             unique_values = df[target_col].unique()
-            if not unique_values.size:
-                raise ValueError(f"No unique values found for the target column '{target_col}'.")
             equal_ratio = 1.0 / len(unique_values)
             custom_ratios = {value: equal_ratio for value in unique_values}
 
@@ -134,8 +132,6 @@ class Dataset:
         label_dict: Dict[str, int],
     ) -> np.ndarray:
         image_np = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_COLOR)
-        if image_np is None:
-            raise ValueError("cv2.imdecode returned None for an image.")
         image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
         image_np = cv2.resize(image_np, (self.settings.dataset.image_size, self.settings.dataset.image_size))
         image_np = image_np.astype(np.float32) / 255.0

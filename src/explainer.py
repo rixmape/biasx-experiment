@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -13,6 +14,8 @@ from tf_keras_vis.gradcam_plus_plus import GradcamPlusPlus
 # isort: off
 from .definitions import Age, Feature, FeatureDetails, Gender, Race
 from .settings import Settings
+
+logger = logging.getLogger(__name__)
 
 
 class Explainer:
@@ -131,9 +134,7 @@ class Explainer:
         for feature_enum in self.settings.analysis.mask_features:
             feature_details = self._get_feature_bbox(pixel_coords, feature_enum, img_height, img_width)
             if feature_details:
-                masked_image[
-                    feature_details.min_y : feature_details.max_y, feature_details.min_x : feature_details.max_x
-                ] = 0
+                masked_image[feature_details.min_y : feature_details.max_y, feature_details.min_x : feature_details.max_x] = 0
 
         return masked_image
 
@@ -171,14 +172,12 @@ class Explainer:
 
         try:
             heatmap = heatmap_generator(target_class, image_batch, penultimate_layer=target_layer)[0]
-            if heatmap is None:
-                raise RuntimeError("GradCAM++ generator returned None heatmap.")
         except Exception as e:
             raise RuntimeError(f"Heatmap generation via GradCAM++ failed: {e}") from e
 
         min_val, max_val = np.min(heatmap), np.max(heatmap)
         if max_val <= min_val:
-            raise ValueError(f"Invalid heatmap range (min={min_val}, max={max_val}).")
+            logger.warning(f"Invalid heatmap range (min={min_val}, max={max_val}).")
 
         normalized_heatmap = (heatmap - min_val) / (max_val - min_val)
         return normalized_heatmap.astype(np.float32)
@@ -194,12 +193,12 @@ class Explainer:
         min_x, max_x = max(0, feature.min_x), min(heatmap_width, feature.max_x)
 
         if min_y >= max_y or min_x >= max_x:
-            raise ValueError(f"Invalid feature region for attention: box=({min_x}, {min_y}, {max_x}, {max_y})")
+            logger.warning(f"Invalid feature region for attention: box=({min_x}, {min_y}, {max_x}, {max_y})")
 
         feature_attention_region = heatmap[min_y:max_y, min_x:max_x]
 
         if feature_attention_region.size == 0:
-            raise ValueError(f"Empty feature region for attention: box=({min_x}, {min_y}, {max_x}, {max_y})")
+            logger.warning(f"Empty feature region for attention: box=({min_x}, {min_y}, {max_x}, {max_y})")
 
         return float(np.mean(feature_attention_region))
 
@@ -217,7 +216,7 @@ class Explainer:
             np.save(filepath, heatmap.astype(np.float16))
             return filepath
         except Exception as e:
-            raise RuntimeError(f"Failed to save heatmap to {filepath}: {e}") from e
+            logger.error(f"Failed to save heatmap to {filepath}: {e}")
 
     def _compute_feature_details(
         self,
