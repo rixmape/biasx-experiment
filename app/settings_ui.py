@@ -1,3 +1,4 @@
+import math
 from typing import Any, Dict
 
 import streamlit as st
@@ -25,6 +26,43 @@ def render_experiment_tab_widgets() -> Dict[str, Any]:
     }
 
 
+def _render_group_ratios_widget() -> Dict[int, float]:
+    """Renders group ratios for the predicted demographic attribute."""
+    predict_attribute = st.session_state.get("exp_predict_attribute", DemographicAttribute.GENDER)
+    attribute_enum_map = {
+        DemographicAttribute.GENDER: Gender,
+        DemographicAttribute.RACE: Race,
+        DemographicAttribute.AGE: Age,
+    }
+    target_enum = attribute_enum_map.get(predict_attribute)
+    ratio_inputs = {}
+    group_ratios_value = None
+
+    num_members = len(target_enum)
+    cols = st.columns(num_members)
+    default_ratio = 1.0 / num_members
+
+    for i, member in enumerate(target_enum):
+        with cols[i]:
+            ratio_inputs[member.value] = st.number_input(
+                f"{member.name.replace('_', ' ').title()}",
+                min_value=0.0,
+                max_value=1.0,
+                value=default_ratio,
+                step=0.01,
+                key=f"ds_ratio_{member.name}",
+            )
+
+    ratio_sum = sum(ratio_inputs.values())
+    if math.isclose(ratio_sum, 1.0, abs_tol=1e-9):
+        group_ratios_value = ratio_inputs
+    else:
+        st.error(f"Entered ratios sum to {ratio_sum:.4f}, not 1.0. Default equal ratios will be used.")
+        group_ratios_value = None
+
+    return group_ratios_value
+
+
 def render_dataset_tab_widgets() -> Dict[str, Any]:
     ds_source_name = st.selectbox(
         "Dataset Source",
@@ -41,6 +79,7 @@ def render_dataset_tab_widgets() -> Dict[str, Any]:
         step=100,
         key="ds_target_size",
     )
+    ds_group_ratios = _render_group_ratios_widget()
     ds_validation_ratio = st.slider(
         "Validation Ratio",
         min_value=0.0,
@@ -72,6 +111,7 @@ def render_dataset_tab_widgets() -> Dict[str, Any]:
     return {
         "source_name": ds_source_name,
         "target_size": ds_target_size,
+        "group_ratios": ds_group_ratios,
         "validation_ratio": ds_validation_ratio,
         "test_ratio": ds_test_ratio,
         "image_size": ds_image_size,

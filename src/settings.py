@@ -1,7 +1,8 @@
 import hashlib
 import logging
+import math
 from functools import cached_property
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -32,6 +33,7 @@ class AnalysisSettings(BaseModel):
 class DatasetSettings(BaseModel):
     source_name: DatasetSource = Field(default=DatasetSource.UTKFACE)
     target_size: int = Field(default=5000, gt=0)
+    group_ratios: Optional[Dict[int, float]] = Field(default=None)
     validation_ratio: float = Field(default=0.1, ge=0.0, lt=1.0)
     test_ratio: float = Field(default=0.2, ge=0.0, lt=1.0)
     image_size: int = Field(default=48, gt=0)
@@ -41,6 +43,16 @@ class DatasetSettings(BaseModel):
     def check_split_ratios(self) -> "DatasetSettings":
         if self.validation_ratio + self.test_ratio >= 1.0:
             raise ValueError("The sum of 'validation_ratio' and 'test_ratio' must be less than 1.0.")
+        return self
+
+    @model_validator(mode="after")
+    def check_group_ratios(self) -> "DatasetSettings":
+        if self.group_ratios is not None:
+            if not math.isclose(sum(self.group_ratios.values()), 1.0, abs_tol=1e-9):
+                raise ValueError("The sum of 'group_ratios' values must be approximately 1.0.")
+            for ratio in self.group_ratios.values():
+                if not (0.0 <= ratio <= 1.0):
+                    raise ValueError("Each ratio in 'group_ratios' must be between 0.0 and 1.0.")
         return self
 
 

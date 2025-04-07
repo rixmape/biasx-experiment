@@ -9,7 +9,7 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 
 # isort: off
-from .definitions import DatasetSplit, DemographicAttribute
+from .definitions import Age, DatasetSplit, DemographicAttribute, Gender, Race
 from .explainer import Explainer
 from .settings import Settings
 
@@ -72,18 +72,27 @@ class Dataset:
         df: pd.DataFrame,
         seed: int,
     ) -> pd.DataFrame:
+        """Samples the dataframe based on target size and specified or default group ratios."""
         target_col = self.settings.experiment.predict_attribute.value
         strata_cols = [col.value for col in DemographicAttribute if col.value != target_col]
+        custom_ratios = self.settings.dataset.group_ratios
+
+        if custom_ratios is None:
+            unique_values = df[target_col].unique()
+            if not unique_values.size:
+                raise ValueError(f"No unique values found for the target column '{target_col}'.")
+            equal_ratio = 1.0 / len(unique_values)
+            custom_ratios = {value: equal_ratio for value in unique_values}
 
         df["strata"] = df[strata_cols].astype(str).agg("_".join, axis=1)
-        unique_values = df[target_col].unique()
-        target_size_per_value = max(1, self.settings.dataset.target_size // len(unique_values))
+        sampled_subsets = []
 
-        sampled_subsets = [
-            self._get_sampled_attribute_subset(df, target_col, value, target_size_per_value, seed)
-            for value in unique_values
-        ]
-        sampled_subsets = [s for s in sampled_subsets if not s.empty]
+        for group_int_value, ratio in custom_ratios.items():
+            if ratio > 0:
+                target_group_size = max(1, round(self.settings.dataset.target_size * ratio))
+                sampled_subset = self._get_sampled_attribute_subset(df, target_col, group_int_value, target_group_size, seed)
+                if not sampled_subset.empty:
+                    sampled_subsets.append(sampled_subset)
 
         if not sampled_subsets:
             raise ValueError("Sampling resulted in an empty DataFrame. Cannot proceed.")
