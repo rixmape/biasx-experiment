@@ -139,9 +139,9 @@ class Runner:
             id=self.settings.experiment_id,
             settings=self.settings.model_dump(mode="json"),
             model=model_metadata,
-            bias_metrics=analysis_dict["bias"],
-            feature_distributions=analysis_dict["distributions"],
-            performance_metrics=analysis_dict["performance"],
+            feature_distributions=analysis_dict["feature_distributions"],
+            fairness_metrics=analysis_dict["fairness_metrics"],
+            performance_metrics=analysis_dict["performance_metrics"],
             analyzed_images=image_details,
         )
 
@@ -164,7 +164,7 @@ class Runner:
 
         model, model_metadata = self.model.get_model_and_history(train_df, val_df)
         explanations = self._get_all_explanations(test_df, model)
-        analysis_dict = self.analyzer.get_bias_analysis(explanations)
+        analysis_dict = self.analyzer.get_fairness_analysis(explanations)
         result = self._save_result(model_metadata, analysis_dict, explanations)
 
         return result

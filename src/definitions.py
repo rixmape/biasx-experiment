@@ -126,11 +126,10 @@ class AttributePerformanceMetrics(BaseModel):
         return self.fn / max(self.fn + self.tn, 1)
 
 
-class BiasMetrics(BaseModel):
+class FairnessMetrics(BaseModel):
     demographic_parity: float = Field(..., ge=0.0)
     equalized_odds: float = Field(..., ge=0.0)
-    conditional_use_accuracy_equality: float = Field(..., ge=0.0)
-    mean_feature_distribution_bias: float = Field(..., ge=0.0)
+    feature_attention_parity: float = Field(..., ge=0.0)
 
 
 class FeatureDistribution(BaseModel):
@@ -138,7 +137,6 @@ class FeatureDistribution(BaseModel):
     gender_distributions: Dict[Gender, float] = Field(...)
     race_distributions: Dict[Race, float] = Field(...)
     age_distributions: Dict[Age, float] = Field(...)
-    distribution_bias: float = Field(..., ge=0.0)
 
 
 class Explanation(BaseModel):
@@ -166,7 +164,7 @@ class ExperimentResult(BaseModel):
     id: str = Field(..., min_length=1)
     settings: Dict = Field(...)
     model: ModelMetadata = Field(...)
-    bias_metrics: BiasMetrics = Field(...)
+    fairness_metrics: FairnessMetrics = Field(...)
     feature_distributions: List[FeatureDistribution] = Field(...)
     performance_metrics: List[AttributePerformanceMetrics] = Field(...)
     analyzed_images: List[Explanation] = Field(...)

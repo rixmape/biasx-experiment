@@ -27,33 +27,30 @@ def render_download_button(result: ExperimentResult):
         st.error(f"Error preparing download data: {e}")
 
 
-def render_bias_metrics(result: ExperimentResult):
-    st.subheader(f"Bias Metrics Summary")
-    metrics = result.bias_metrics
-    col1, col2, col3, col4 = st.columns(4)
+def render_fairness_metrics(result: ExperimentResult):
+    st.subheader(f"Fairness Metrics Summary")
+    metrics = result.fairness_metrics
+    col1, col2, col3 = st.columns(3)
     with col1:
         st.metric(
             label="Demographic Parity",
             value=f"{metrics.demographic_parity:.3f}",
             help="Difference between the largest and smallest selection rates across groups.",
+            border=True,
         )
     with col2:
         st.metric(
             label="Equalized Odds",
             value=f"{metrics.equalized_odds:.3f}",
             help="Difference between the largest and smallest true positive rates across groups.",
+            border=True,
         )
     with col3:
         st.metric(
-            label="Cond. Use Acc. Equality",
-            value=f"{metrics.conditional_use_accuracy_equality:.3f}",
-            help="Difference between the largest and smallest positive predictive values across groups.",
-        )
-    with col4:
-        st.metric(
-            label="Feature Distribution Bias",
-            value=f"{metrics.mean_feature_distribution_bias:.3f}",
+            label="Feature Attention Parity",
+            value=f"{metrics.feature_attention_parity:.3f}",
             help="Average maximum difference in key feature prevalence across groups.",
+            border=True,
         )
 
 
