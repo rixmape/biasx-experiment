@@ -65,7 +65,6 @@ def render_performance_comparison(result: ExperimentResult):
             "True Positive Rate": p.tpr,
             "False Positive Rate": p.fpr,
             "Precision": p.ppv,
-            "Accuracy": (p.tp + p.tn) / max(p.tp + p.tn + p.fp + p.fn, 1),
         }
         for p in result.performance_metrics
     ]
