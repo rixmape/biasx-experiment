@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Type, Union
 
 import numpy as np
 
@@ -9,6 +9,7 @@ from .definitions import (
     AttributePerformanceMetrics,
     BiasMetrics,
     DemographicAttribute,
+    DemographicValue,
     Explanation,
     Feature,
     FeatureDistribution,
@@ -25,7 +26,7 @@ class Analyzer:
     def _get_attribute_enum_class(
         self,
         attribute: DemographicAttribute,
-    ) -> Union[Gender, Race, Age]:
+    ) -> DemographicValue:
         if attribute == DemographicAttribute.GENDER:
             return Gender
         if attribute == DemographicAttribute.RACE:
@@ -33,44 +34,66 @@ class Analyzer:
         if attribute == DemographicAttribute.AGE:
             return Age
 
+    def _tally_feature_and_demographic_counts(
+        self,
+        image_details: List[Explanation],
+    ) -> Tuple[
+        Dict[Feature, Dict[DemographicValue, int]],
+        Dict[Type[DemographicValue], Dict[DemographicValue, int]],
+    ]:
+        feature_counts: Dict[Feature, Dict[DemographicValue, int]] = defaultdict(lambda: defaultdict(int))
+        totals = {Gender: defaultdict(int), Race: defaultdict(int), Age: defaultdict(int)}
+
+        for detail in image_details:
+            totals[Gender][detail.gender] += 1
+            totals[Race][detail.race] += 1
+            totals[Age][detail.age] += 1
+
+            for feature_detail in detail.detected_features:
+                if feature_detail.is_key_feature:
+                    feature = feature_detail.feature
+                    feature_counts[feature][detail.gender] += 1
+                    feature_counts[feature][detail.race] += 1
+                    feature_counts[feature][detail.age] += 1
+
+        return feature_counts, totals
+
+    def _calculate_distribution_for_feature(
+        self,
+        feature: Feature,
+        feature_counts: Dict[Feature, Dict[DemographicValue, int]],
+        totals: Dict[Type[DemographicValue], Dict[DemographicValue, int]],
+        protected_cls: Type[DemographicValue],
+    ) -> FeatureDistribution:
+        gender_dist = {g: feature_counts[feature].get(g, 0) / max(totals[Gender].get(g, 0), 1) for g in Gender}
+        race_dist = {r: feature_counts[feature].get(r, 0) / max(totals[Race].get(r, 0), 1) for r in Race}
+        age_dist = {a: feature_counts[feature].get(a, 0) / max(totals[Age].get(a, 0), 1) for a in Age}
+
+        protected_dists_map = {Gender: gender_dist, Race: race_dist, Age: age_dist}
+        protected_values = [protected_dists_map[protected_cls].get(subgroup, 0.0) for subgroup in protected_cls]
+        distribution_bias = max(protected_values) - min(protected_values) if protected_values else 0.0
+
+        return FeatureDistribution(
+            feature=feature,
+            gender_distributions=gender_dist,
+            race_distributions=race_dist,
+            age_distributions=age_dist,
+            distribution_bias=distribution_bias,
+        )
+
     def _compute_feature_distributions(
         self,
         image_details: List[Explanation],
     ) -> List[FeatureDistribution]:
-        feature_counts: Dict[Feature, Dict[Union[Gender, Race, Age], int]] = defaultdict(lambda: defaultdict(int))
-        gender_totals: Dict[Gender, int] = defaultdict(int)
-        race_totals: Dict[Race, int] = defaultdict(int)
-        age_totals: Dict[Age, int] = defaultdict(int)
+        feature_counts, totals = self._tally_feature_and_demographic_counts(image_details)
+        protected_cls = self._get_attribute_enum_class(self.settings.analysis.protected_attribute)
+        distributions_list = [self._calculate_distribution_for_feature(feature, feature_counts, totals, protected_cls) for feature in Feature]
 
-        for detail in image_details:
-            gender_totals[detail.gender] += 1
-            race_totals[detail.race] += 1
-            age_totals[detail.age] += 1
-            for feature_detail in detail.detected_features:
-                if feature_detail.is_key_feature:
-                    feature_counts[feature_detail.feature][detail.gender] += 1
-                    feature_counts[feature_detail.feature][detail.race] += 1
-                    feature_counts[feature_detail.feature][detail.age] += 1
-
-        distributions = []
-        for feature_enum in Feature:
-            gender_dist: Dict[Gender, float] = {val: feature_counts[feature_enum].get(val, 0) / max(gender_totals.get(val, 0), 1) for val in Gender}  # fmt: skip
-            race_dist: Dict[Race, float] = {val: feature_counts[feature_enum].get(val, 0) / max(race_totals.get(val, 0), 1) for val in Race}  # fmt: skip
-            age_dist: Dict[Age, float] = {val: feature_counts[feature_enum].get(val, 0) / max(age_totals.get(val, 0), 1) for val in Age}  # fmt: skip
-
-            dist = FeatureDistribution(
-                feature=feature_enum,
-                gender_distributions=gender_dist,
-                race_distributions=race_dist,
-                age_distributions=age_dist,
-            )
-            distributions.append(dist)
-
-        return distributions
+        return distributions_list
 
     def _compute_attribute_performance_metrics(
         self,
-        positive_class: Union[Gender, Race, Age],
+        positive_class: DemographicValue,
         labels: np.ndarray,
         predictions: np.ndarray,
     ) -> AttributePerformanceMetrics:

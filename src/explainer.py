@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 import mediapipe as mp
 import numpy as np
@@ -12,7 +12,7 @@ from mediapipe.tasks.python.vision.face_landmarker import FaceLandmarker, FaceLa
 from tf_keras_vis.gradcam_plus_plus import GradcamPlusPlus
 
 # isort: off
-from .definitions import Age, Feature, FeatureDetails, Gender, Race
+from .definitions import DemographicValue, Feature, FeatureDetails
 from .settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -161,7 +161,7 @@ class Explainer:
         heatmap_generator: GradcamPlusPlus,
         model: tf.keras.Model,
         image_np: np.ndarray,
-        label: Union[Gender, Race, Age],
+        label: DemographicValue,
     ) -> np.ndarray:
         target_class = lambda output: output[0][label.value]
         image_batch = np.expand_dims(image_np.astype(np.float32), axis=0)
@@ -246,7 +246,7 @@ class Explainer:
         heatmap_generator: GradcamPlusPlus,
         model: tf.keras.Model,
         image_np: np.ndarray,
-        label: Union[Gender, Race, Age],
+        label: DemographicValue,
         image_id: str,
     ) -> Tuple[List[FeatureDetails], Optional[str]]:
         heatmap = self._calculate_heatmap(heatmap_generator, model, image_np, label)

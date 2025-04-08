@@ -1,13 +1,12 @@
 import hashlib
-import logging
 import math
 from functools import cached_property
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field, model_validator
 
 # isort: off
-from .definitions import Age, DatasetSource, DemographicAttribute, Feature, Gender, Race
+from .definitions import DatasetSource, DemographicAttribute, DemographicValue, Feature
 
 
 class ExperimentSettings(BaseModel):
@@ -18,7 +17,7 @@ class ExperimentSettings(BaseModel):
 class AnalysisSettings(BaseModel):
     protected_attribute: DemographicAttribute = Field(default=DemographicAttribute.GENDER)
     key_feature_threshold: float = Field(default=0.5, ge=0.0, le=1.0)
-    mask_demographic: Optional[Union[Gender, Race, Age]] = Field(default=None)
+    mask_demographic: Optional[DemographicValue] = Field(default=None)
     mask_features: Optional[List[Feature]] = Field(default=None)
     mask_pixel_padding: int = Field(default=2, ge=0)
 

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, TypeAlias, Union
 
 from pydantic import BaseModel, Field, computed_field
 
@@ -39,6 +39,9 @@ class Age(Enum):
     AGE_70_PLUS = 7
 
 
+DemographicValue: TypeAlias = Union[Gender, Race, Age]
+
+
 class DemographicAttribute(Enum):
     GENDER = "gender"
     RACE = "race"
@@ -76,7 +79,7 @@ class FeatureDetails(BaseModel):
 
 
 class AttributePerformanceMetrics(BaseModel):
-    positive_class: Union[Gender, Race, Age] = Field(...)
+    positive_class: DemographicValue = Field(...)
     tp: int = Field(..., ge=0)
     fp: int = Field(..., ge=0)
     tn: int = Field(..., ge=0)
@@ -135,23 +138,14 @@ class FeatureDistribution(BaseModel):
     gender_distributions: Dict[Gender, float] = Field(...)
     race_distributions: Dict[Race, float] = Field(...)
     age_distributions: Dict[Age, float] = Field(...)
-
-    @computed_field
-    @property
-    def distribution_bias(self) -> float:
-        all_dist_values = list(self.gender_distributions.values()) + list(self.race_distributions.values()) + list(self.age_distributions.values())
-        max_diff = 0.0
-        for i in range(len(all_dist_values)):
-            for j in range(i + 1, len(all_dist_values)):
-                max_diff = max(max_diff, abs(all_dist_values[i] - all_dist_values[j]))
-        return max_diff
+    distribution_bias: float = Field(..., ge=0.0)
 
 
 class Explanation(BaseModel):
     id: str = Field(..., min_length=1)
     image_path: Optional[str] = Field(..., min_length=1)
-    label: Union[Gender, Race, Age] = Field(...)
-    prediction: Union[Gender, Race, Age] = Field(...)
+    label: DemographicValue = Field(...)
+    prediction: DemographicValue = Field(...)
     gender: Gender = Field(...)
     race: Race = Field(...)
     age: Age = Field(...)
