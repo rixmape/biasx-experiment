@@ -54,18 +54,9 @@ class Analyzer:
 
         distributions = []
         for feature_enum in Feature:
-            gender_dist: Dict[Gender, float] = {
-                val: feature_counts[feature_enum].get(val, 0) / max(gender_totals.get(val, 0), 1)  # fmt: skip
-                for val in Gender
-            }
-            race_dist: Dict[Race, float] = {
-                val: feature_counts[feature_enum].get(val, 0) / max(race_totals.get(val, 0), 1)  # fmt: skip
-                for val in Race
-            }
-            age_dist: Dict[Age, float] = {
-                val: feature_counts[feature_enum].get(val, 0) / max(age_totals.get(val, 0), 1)  # fmt: skip
-                for val in Age
-            }
+            gender_dist: Dict[Gender, float] = {val: feature_counts[feature_enum].get(val, 0) / max(gender_totals.get(val, 0), 1) for val in Gender}  # fmt: skip
+            race_dist: Dict[Race, float] = {val: feature_counts[feature_enum].get(val, 0) / max(race_totals.get(val, 0), 1) for val in Race}  # fmt: skip
+            age_dist: Dict[Age, float] = {val: feature_counts[feature_enum].get(val, 0) / max(age_totals.get(val, 0), 1) for val in Age}  # fmt: skip
 
             dist = FeatureDistribution(
                 feature=feature_enum,
@@ -103,10 +94,11 @@ class Analyzer:
     ) -> BiasMetrics:
         select_rates = [(m.tp + m.fp) / max(m.tp + m.fp + m.tn + m.fn, 1) for m in performance_metrics]
         tprs = [m.tpr for m in performance_metrics]
+        fprs = [m.fpr for m in performance_metrics]
         ppvs = [m.ppv for m in performance_metrics]
 
         demographic_parity = max(select_rates) - min(select_rates)
-        equalized_odds = max(tprs) - min(tprs)
+        equalized_odds = max(max(tprs) - min(tprs), max(fprs) - min(fprs))
         conditional_use_accuracy_equality = max(ppvs) - min(ppvs)
         mean_feature_distribution_bias = np.mean([dist.distribution_bias for dist in distributions])
 
@@ -127,10 +119,7 @@ class Analyzer:
         feature_distributions = self._compute_feature_distributions(image_details)
         attribute_class = self._get_attribute_enum_class(self.settings.analysis.protected_attribute)
 
-        performance_metrics_list = [
-            self._compute_attribute_performance_metrics(val, true_labels, predicted_labels)  # fmt: skip
-            for val in attribute_class
-        ]
+        performance_metrics_list = [self._compute_attribute_performance_metrics(val, true_labels, predicted_labels) for val in attribute_class]  # fmt: skip
 
         bias_metrics = self._compute_bias_metrics(performance_metrics_list, feature_distributions)
 
