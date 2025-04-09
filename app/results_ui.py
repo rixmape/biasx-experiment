@@ -27,9 +27,9 @@ def render_download_button(result: ExperimentResult):
         st.error(f"Error preparing download data: {e}")
 
 
-def render_fairness_violation_metrics(result: ExperimentResult):
-    st.subheader(f"Fairness Violation Metrics Summary")
-    metrics = result.fairness_violation_metrics
+def render_fairness_violations(result: ExperimentResult):
+    st.subheader(f"Fairness Violations Summary")
+    metrics = result.fairness_violations
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric(

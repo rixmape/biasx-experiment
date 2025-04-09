@@ -7,7 +7,7 @@ import numpy as np
 from .definitions import (
     Age,
     AttributePerformanceMetrics,
-    FairnessViolationMetrics,
+    FairnessViolations,
     DemographicAttribute,
     DemographicValue,
     Explanation,
@@ -126,11 +126,11 @@ class Analyzer:
         mean_parity = np.mean(feature_parities) if feature_parities else 0.0
         return mean_parity
 
-    def _compute_fairness_violation_metrics(
+    def _compute_fairness_violations(
         self,
         performance_metrics: List[AttributePerformanceMetrics],
         distributions: List[FeatureDistribution],
-    ) -> FairnessViolationMetrics:
+    ) -> FairnessViolations:
         select_rates = [(m.tp + m.fp) / max(m.tp + m.fp + m.tn + m.fn, 1) for m in performance_metrics]
         tprs = [m.tpr for m in performance_metrics]
         fprs = [m.fpr for m in performance_metrics]
@@ -139,7 +139,7 @@ class Analyzer:
         equalized_odds = max(max(tprs) - min(tprs), max(fprs) - min(fprs))
         attention_parity = self._compute_attention_parity(distributions)
 
-        return FairnessViolationMetrics(
+        return FairnessViolations(
             demographic_parity=demographic_parity,
             equalized_odds=equalized_odds,
             attention_parity=attention_parity,
@@ -156,10 +156,10 @@ class Analyzer:
         attribute_class = self._get_attribute_enum_class(self.settings.analysis.protected_attribute)
 
         performance_metrics = [self._compute_attribute_performance_metrics(val, true_labels, predicted_labels) for val in attribute_class]  # fmt: skip
-        fairness_violation_metrics = self._compute_fairness_violation_metrics(performance_metrics, feature_distributions)
+        fairness_violations = self._compute_fairness_violations(performance_metrics, feature_distributions)
 
         return {
             "feature_distributions": feature_distributions,
             "performance_metrics": performance_metrics,
-            "fairness_violation_metrics": fairness_violation_metrics,
+            "fairness_violations": fairness_violations,
         }

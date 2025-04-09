@@ -140,7 +140,7 @@ class Runner:
             settings=self.settings.model_dump(mode="json"),
             model=model_metadata,
             feature_distributions=analysis_dict["feature_distributions"],
-            fairness_violation_metrics=analysis_dict["fairness_violation_metrics"],
+            fairness_violations=analysis_dict["fairness_violations"],
             performance_metrics=analysis_dict["performance_metrics"],
             analyzed_images=image_details,
         )
