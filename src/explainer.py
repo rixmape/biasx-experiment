@@ -194,13 +194,21 @@ class Explainer:
 
         if min_y >= max_y or min_x >= max_x:
             logger.warning(f"Invalid feature region for attention: box=({min_x}, {min_y}, {max_x}, {max_y})")
+            return 0.0
 
         feature_attention_region = heatmap[min_y:max_y, min_x:max_x]
 
         if feature_attention_region.size == 0:
             logger.warning(f"Empty feature region for attention: box=({min_x}, {min_y}, {max_x}, {max_y})")
+            return 0.0
 
-        return float(np.mean(feature_attention_region))
+        attention = np.nanmean(feature_attention_region)
+
+        if np.isnan(attention):
+            logger.warning(f"Feature region for {feature.feature.name} contained only NaN values.")
+            return 0.0
+
+        return float(attention)
 
     def _save_heatmap(
         self,
