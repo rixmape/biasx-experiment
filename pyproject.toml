@@ -3,9 +3,9 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "biasx-experiment"
+name = "fairness-experiment"
 version = "0.1.0"
-description = "An experimental framework for conducting machine learning experiments focused on analyzing bias in facial classification models."
+description = "An experimental framework for conducting machine learning experiments focused on analyzing fairness in facial classification models."
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
@@ -37,7 +37,7 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/rixmape/biasx-experiment"
+Repository = "https://github.com/rixmape/fairness-experiment"
 
 [tool.setuptools.packages.find]
 where = ["src"]

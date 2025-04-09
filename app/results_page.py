@@ -5,7 +5,7 @@ import streamlit as st
 # isort: off
 from src.runner import Runner
 
-from .results_ui import render_confidence_score_distribution, render_download_button, render_fairness_metrics, render_example_visual_explanations, render_feature_attention_distribution, render_performance_comparison
+from .results_ui import render_confidence_score_distribution, render_download_button, render_fairness_violation_metrics, render_example_visual_explanations, render_feature_attention_distribution, render_performance_comparison
 
 
 def render_results_page():
@@ -42,7 +42,7 @@ def render_results_page():
     settings = st.session_state.get("settings")
 
     if result and settings:
-        render_fairness_metrics(result)
+        render_fairness_violation_metrics(result)
         render_performance_comparison(result)
         render_feature_attention_distribution(result)
         render_confidence_score_distribution(result)

@@ -27,9 +27,9 @@ def render_download_button(result: ExperimentResult):
         st.error(f"Error preparing download data: {e}")
 
 
-def render_fairness_metrics(result: ExperimentResult):
-    st.subheader(f"Fairness Metrics Summary")
-    metrics = result.fairness_metrics
+def render_fairness_violation_metrics(result: ExperimentResult):
+    st.subheader(f"Fairness Violation Metrics Summary")
+    metrics = result.fairness_violation_metrics
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric(
@@ -47,8 +47,8 @@ def render_fairness_metrics(result: ExperimentResult):
         )
     with col3:
         st.metric(
-            label="Feature Attention Parity",
-            value=f"{metrics.feature_attention_parity:.3f}",
+            label="Attention Parity",
+            value=f"{metrics.attention_parity:.3f}",
             help="Average maximum difference in key feature prevalence across groups.",
             border=True,
         )

@@ -27,7 +27,7 @@ class Explainer:
     def _load_landmarker(self) -> FaceLandmarker:
         try:
             model_path = hf_hub_download(
-                repo_id="rixmape/biasx-models",
+                repo_id="rixmape/fairness-analysis-experiment",
                 filename="mediapipe_landmarker.task",
                 repo_type="model",
             )
@@ -45,7 +45,7 @@ class Explainer:
     def _load_feature_indices_map(self) -> Dict[Feature, List[int]]:
         try:
             map_path = hf_hub_download(
-                repo_id="rixmape/biasx-models",
+                repo_id="rixmape/fairness-analysis-experiment",
                 filename="landmark_map.json",
                 repo_type="model",
             )

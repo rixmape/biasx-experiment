@@ -56,8 +56,8 @@ DENSE_UNITS = 512
 DROPOUT = 0.5
 
 OUT_DIR_NAME = "outputs"
-MODEL_FILENAME_TEMPLATE = "feature_bias_{mask_gender}_{mask_feature_names}.keras"
-RESULTS_FILENAME_TEMPLATE = "feature_bias_{mask_gender}_{mask_feature_names}.json"
+MODEL_FILENAME_TEMPLATE = "attention_fairness_{mask_gender}_{mask_feature_names}.keras"
+RESULTS_FILENAME_TEMPLATE = "attention_fairness_{mask_gender}_{mask_feature_names}.json"
 
 FACE_LANDMARKER: Optional[FaceLandmarker] = None
 FEATURE_INDICES_MAP: Optional[Dict[Feature, List[int]]] = None
@@ -79,7 +79,7 @@ def _load_mediapipe_utils():
         return
 
     landmarker_model_path = hf_hub_download(
-        repo_id="rixmape/biasx-models",
+        repo_id="rixmape/fairness-analysis-experiment",
         filename="mediapipe_landmarker.task",
         repo_type="model",
     )
@@ -92,7 +92,7 @@ def _load_mediapipe_utils():
     FACE_LANDMARKER = FaceLandmarker.create_from_options(landmarker_options)
 
     map_path = hf_hub_download(
-        repo_id="rixmape/biasx-models",
+        repo_id="rixmape/fairness-analysis-experiment",
         filename="landmark_map.json",
         repo_type="model",
     )
@@ -308,7 +308,6 @@ def save_results(model: tf.keras.Model, results_data: Dict[str, Any], out_dir: P
 
 
 def main() -> None:
-    """Main function to run the feature bias experiment."""
     set_seeds()
     _load_mediapipe_utils()
     out_dir = Path(OUT_DIR_NAME)

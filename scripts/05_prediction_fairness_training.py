@@ -250,7 +250,7 @@ def main() -> None:
     print("Saving model and results...")
     save_results(model, results, out_dir)
 
-    print(f"\nOutcome bias scenario script finished. Outputs saved in '{out_dir.resolve()}'")
+    print(f"\nPrediction fairness scenario script finished. Outputs saved in '{out_dir.resolve()}'")
 
 
 if __name__ == "__main__":

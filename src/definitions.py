@@ -126,10 +126,10 @@ class AttributePerformanceMetrics(BaseModel):
         return self.fn / max(self.fn + self.tn, 1)
 
 
-class FairnessMetrics(BaseModel):
+class FairnessViolationMetrics(BaseModel):
     demographic_parity: float = Field(..., ge=0.0)
     equalized_odds: float = Field(..., ge=0.0)
-    feature_attention_parity: float = Field(..., ge=0.0)
+    attention_parity: float = Field(..., ge=0.0)
 
 
 class FeatureDistribution(BaseModel):
@@ -164,7 +164,7 @@ class ExperimentResult(BaseModel):
     id: str = Field(..., min_length=1)
     settings: Dict = Field(...)
     model: ModelMetadata = Field(...)
-    fairness_metrics: FairnessMetrics = Field(...)
+    fairness_violation_metrics: FairnessViolationMetrics = Field(...)
     feature_distributions: List[FeatureDistribution] = Field(...)
     performance_metrics: List[AttributePerformanceMetrics] = Field(...)
     analyzed_images: List[Explanation] = Field(...)

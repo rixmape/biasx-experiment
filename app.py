@@ -8,10 +8,10 @@ from app.settings_page import render_settings_page
 def main():
     st.set_page_config(
         layout="centered",
-        page_title="Bias Analysis Experiment",
+        page_title="Fairness Analysis Experiment",
     )
 
-    st.title("Bias Analysis Experiment")
+    st.title("Fairness Analysis Experiment")
 
     default_state = {
         "navigate_to_results": False,

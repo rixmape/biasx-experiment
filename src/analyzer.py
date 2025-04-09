@@ -7,7 +7,7 @@ import numpy as np
 from .definitions import (
     Age,
     AttributePerformanceMetrics,
-    FairnessMetrics,
+    FairnessViolationMetrics,
     DemographicAttribute,
     DemographicValue,
     Explanation,
@@ -103,7 +103,7 @@ class Analyzer:
 
         return AttributePerformanceMetrics(positive_class=positive_class, tp=tp, fp=fp, tn=tn, fn=fn)
 
-    def _compute_feature_attention_parity(
+    def _compute_attention_parity(
         self,
         distributions: List[FeatureDistribution],
     ) -> float:
@@ -126,23 +126,23 @@ class Analyzer:
         mean_parity = np.mean(feature_parities) if feature_parities else 0.0
         return mean_parity
 
-    def _compute_fairness_metrics(
+    def _compute_fairness_violation_metrics(
         self,
         performance_metrics: List[AttributePerformanceMetrics],
         distributions: List[FeatureDistribution],
-    ) -> FairnessMetrics:
+    ) -> FairnessViolationMetrics:
         select_rates = [(m.tp + m.fp) / max(m.tp + m.fp + m.tn + m.fn, 1) for m in performance_metrics]
         tprs = [m.tpr for m in performance_metrics]
         fprs = [m.fpr for m in performance_metrics]
 
         demographic_parity = max(select_rates) - min(select_rates)
         equalized_odds = max(max(tprs) - min(tprs), max(fprs) - min(fprs))
-        feature_attention_parity = self._compute_feature_attention_parity(distributions)
+        attention_parity = self._compute_attention_parity(distributions)
 
-        return FairnessMetrics(
+        return FairnessViolationMetrics(
             demographic_parity=demographic_parity,
             equalized_odds=equalized_odds,
-            feature_attention_parity=feature_attention_parity,
+            attention_parity=attention_parity,
         )
 
     def get_fairness_analysis(
@@ -156,10 +156,10 @@ class Analyzer:
         attribute_class = self._get_attribute_enum_class(self.settings.analysis.protected_attribute)
 
         performance_metrics = [self._compute_attribute_performance_metrics(val, true_labels, predicted_labels) for val in attribute_class]  # fmt: skip
-        fairness_metrics = self._compute_fairness_metrics(performance_metrics, feature_distributions)
+        fairness_violation_metrics = self._compute_fairness_violation_metrics(performance_metrics, feature_distributions)
 
         return {
             "feature_distributions": feature_distributions,
             "performance_metrics": performance_metrics,
-            "fairness_metrics": fairness_metrics,
+            "fairness_violation_metrics": fairness_violation_metrics,
         }
