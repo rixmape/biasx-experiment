@@ -177,11 +177,7 @@ class Dataset:
         df: pd.DataFrame,
         purpose: DatasetSplit,
     ) -> None:
-        savepath = os.path.join(
-            self.settings.output.base_path,
-            self.settings.experiment_id,
-            f"{purpose.value.lower()}_images",
-        )
+        savepath = os.path.join(self.settings.output.base_path, f"{purpose.value.lower()}_images")
         os.makedirs(savepath, exist_ok=True)
 
         for _, row in df.iterrows():

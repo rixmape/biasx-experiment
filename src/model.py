@@ -65,10 +65,9 @@ class Model:
         return model
 
     def save_model(self, model) -> str:
-        savepath = os.path.join(self.settings.output.base_path, self.settings.experiment_id)
-        os.makedirs(savepath, exist_ok=True)
+        os.makedirs(self.settings.output.base_path, exist_ok=True)
         filename = f"{self.settings.experiment_id}.keras"
-        filepath = os.path.join(savepath, filename)
+        filepath = os.path.join(self.settings.output.base_path, filename)
 
         try:
             model.save(filepath)

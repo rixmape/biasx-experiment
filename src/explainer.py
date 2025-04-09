@@ -207,7 +207,7 @@ class Explainer:
         heatmap: np.ndarray,
         image_id: str,
     ) -> Optional[str]:
-        savepath = os.path.join(self.settings.output.base_path, self.settings.experiment_id, "heatmaps")
+        savepath = os.path.join(self.settings.output.base_path, "heatmaps")
         os.makedirs(savepath, exist_ok=True)
         filename = f"heatmap_{image_id}.npy"
         filepath = os.path.join(savepath, filename)

@@ -88,8 +88,8 @@ class Runner:
                 image_id,
             )
 
-            folder = os.path.join(self.settings.output.base_path, self.settings.experiment_id, "test_images")
-            image_path = os.path.join(folder, f"test_{image_id}.png")
+            savepath = os.path.join(self.settings.output.base_path, "test_images")
+            image_path = os.path.join(savepath, f"test_{image_id}.png")
 
             explanation = Explanation(
                 id=image_id,
@@ -145,10 +145,9 @@ class Runner:
             analyzed_images=image_details,
         )
 
-        savepath = os.path.join(self.settings.output.base_path, self.settings.experiment_id)
-        os.makedirs(savepath, exist_ok=True)
+        os.makedirs(self.settings.output.base_path, exist_ok=True)
         filename = f"{self.settings.experiment_id}.json"
-        filepath = os.path.join(savepath, filename)
+        filepath = os.path.join(self.settings.output.base_path, filename)
 
         try:
             json_string = result.model_dump_json(exclude_none=True, indent=2)
